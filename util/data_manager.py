@@ -120,20 +120,19 @@ class VehicleID(object):
     def __init__(self, root='dataset', **kwargs):
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'train')
-        self.test_dir = osp.join(self.dataset_dir, 'test')
-        self.test_800 = osp.join(self.dataset_dir, 'test_800')
+        self.query_dir = osp.join(self.dataset_dir, 'query')
+        self.gallery_dir = osp.join(self.dataset_dir, 'gallery')
         self.train_test_split = osp.join(self.dataset_dir, 'train_test_split')
         train_group = self.return_vid_vno(osp.join(self.train_test_split, 'train.txt'))
-        test_group = self.return_vid_vno(osp.join(self.train_test_split, 'test.txt'))
         test_800_group = self.return_vid_vno(osp.join(self.train_test_split, 'test_800.txt'))
 
         self._check_before_run()
 
         train, num_train_vids, num_train_imgs = self._process_dir(self.train_dir,train_group, relabel=True)
-        test, num_test_vids, num_test_imgs = self._process_dir(self.test_dir, test_group, relabel=False)
-        test_800, num_test_800_vids, num_test_800_imgs = self._process_dir(self.test_800,test_800_group, relabel=False)
-        num_total_vids = num_train_vids + num_test_vids
-        num_total_imgs = num_train_imgs + num_test_imgs
+        query, num_query_vids, num_query_imgs = self._process_dir(self.query_dir, test_800_group, relabel=False)
+        gallery, num_gallery_vids, num_gallery_imgs = self._process_dir(self.gallery_dir,test_800_group, relabel=False)
+        num_total_vids = num_train_vids + num_query_vids
+        num_total_imgs = num_train_imgs + num_query_imgs + num_gallery_imgs
 
         print("=> VehicleID loaded")
         print("Dataset statistics:")
@@ -141,18 +140,19 @@ class VehicleID(object):
         print("  subset   | # ids | # images")
         print("  ------------------------------")
         print("  train    | {:5d} | {:8d}".format(num_train_vids, num_train_imgs))
-        print("  test     | {:5d} | {:8d}".format(num_test_vids, num_test_imgs))
+        print("  query    | {:5d} | {:8d}".format(num_query_vids, num_query_imgs))
+        print("  gallery  | {:5d} | {:8d}".format(num_gallery_vids, num_gallery_imgs))
         print("  ------------------------------")
         print("  total    | {:5d} | {:8d}".format(num_total_vids, num_total_imgs))
         print("  ------------------------------")
 
         self.train = train
-        self.test = test
-        self.test_800= test_800
+        self.query = query
+        self.gallery = gallery
 
         self.num_train_vids = num_train_vids
-        self.num_test_vids = num_test_vids
-        self.num_test_800_vids = num_test_800_vids
+        self.num_query_vids = num_query_vids
+        self.num_gallery_vids = num_gallery_vids
 
     def _check_before_run(self):
         """Check if all files are available before going deeper"""
@@ -196,7 +196,7 @@ class VehicleID(object):
         for img_path in img_paths:
             veid = int(group[img_path.split(osp.sep)[-1].split('.')[0]])
             vid_list.append(veid)
-        print(vid_list)
+
         vlabel, num_vids = self.vid2label(vid_list)
 
         dataset = []
@@ -1275,6 +1275,7 @@ __img_factory = {
     'cuhk03': CUHK03,
     'dukemtmcreid': DukeMTMCreID,
     'msmt17': MSMT17,
+    'VehicleID': VehicleID,
 }
 
 __vid_factory = {
